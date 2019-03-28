@@ -10,45 +10,45 @@ import UIKit
 
 class MenuCellView: UITableViewCell {
     
-    var menuController: MenuController?
-    var iconViewLeadingAnchor: NSLayoutConstraint!
-    
-    let nameLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 16)
-        label.textColor = UIColor.init(white: 0, alpha: 0.8)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    let iconView: UIImageView = {
-        let iv = UIImageView()
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        iv.contentMode = .scaleAspectFit
-        iv.alpha = 0.8
-        return iv
-    }()
-    
-    let arrowButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setImage(#imageLiteral(resourceName: "rightExpand-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = UIColor.init(white: 0, alpha: 0.8)
-        return button
-    }()
+    internal var menuController: MenuController?
+    internal var iconViewLeadingAnchor: NSLayoutConstraint!
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         setupViews()
+        setUpTheming()
     }
+    
+    internal let nameLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    internal let iconView: UIImageView = {
+        let iv = UIImageView()
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        iv.contentMode = .scaleAspectFit
+        return iv
+    }()
+    
+    internal let arrowButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(#imageLiteral(resourceName: "arrow_right"), for: .normal)
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentVerticalAlignment = .fill
+        button.contentHorizontalAlignment = .fill
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     
     func setupViews() {
         self.addSubview(iconView)
         self.addSubview(nameLabel)
         self.addSubview(arrowButton)
         
-        arrowButton.addTarget(self, action: #selector(buttonAction), for: .touchUpInside)
+        arrowButton.addTarget(self, action: #selector(buttonAction), for: .touchDown)
         
         NSLayoutConstraint.activate([
             iconView.topAnchor.constraint(equalTo: self.topAnchor, constant: 5),
@@ -71,25 +71,19 @@ class MenuCellView: UITableViewCell {
         iconViewLeadingAnchor.isActive = true
     }
     
-    @objc func buttonAction() {
-        self.menuController?.reloadTableSection(cell: self)
-    }
-    
     func animateButton(_ isOpened: Bool) {
-        if #available(iOS 10.0, *) {
-            let lightImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
-            lightImpactFeedbackGenerator.prepare()
-            lightImpactFeedbackGenerator.impactOccurred()
-        }
+        let lightImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        lightImpactFeedbackGenerator.prepare()
+        lightImpactFeedbackGenerator.impactOccurred()
         
         var angle: CGFloat
         
         if isOpened == true {
             angle = CGFloat.pi / 2
-            self.arrowButton.setImage(#imageLiteral(resourceName: "rightExpand-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
+            self.arrowButton.setImage(#imageLiteral(resourceName: "arrow_right"), for: .normal)
         } else {
             angle = -(CGFloat.pi / 2)
-            self.arrowButton.setImage(#imageLiteral(resourceName: "bottomExpand-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
+            self.arrowButton.setImage(#imageLiteral(resourceName: "arrow_bottom"), for: .normal)
         }
         
         self.arrowButton.transform = CGAffineTransform.identity
@@ -103,8 +97,22 @@ class MenuCellView: UITableViewCell {
         
     }
     
+    @objc func buttonAction() {
+        self.menuController?.reloadTableSection(cell: self)
+    }
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+}
+
+extension MenuCellView: Themed {
+    func applyTheme(_ theme: AppTheme) {
+        self.backgroundColor = theme.backgroundColor
+        nameLabel.textColor = theme.primaryColor
+        nameLabel.font = theme.paragraph1Font
+        iconView.tintColor = theme.primaryColor
+        arrowButton.tintColor = theme.primaryColor
+    }
 }

@@ -2,205 +2,204 @@
 //  PlayerController.swift
 //  flagApp
 //
-//  Created by Saffet Emin Reisoğlu on 27.12.2018.
-//  Copyright © 2018 Saffet Emin Reisoğlu. All rights reserved.
+//  Created by Saffet Emin Reisoğlu on 8.02.2019.
+//  Copyright © 2019 Saffet Emin Reisoğlu. All rights reserved.
 //
 
 import UIKit
-import AVKit
 
 class PlayerController: UIViewController {
     
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
+    private var timer: Timer?
+    internal var isPlaying: Bool = true
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        let bounds = UIScreen.main.bounds
-        if bounds.width < bounds.height {
-            controlLayerView.topGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
-            controlLayerView.bottomGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
-        } else {
-            controlLayerView.topGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height)
-            controlLayerView.bottomGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height)
-        }
-        
-        AppUtility.lockOrientation(.landscape)
-        
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            let appDelegate = UIApplication.shared.delegate as! AppDelegate
-            let phoneOrientation = appDelegate.phoneOrientation
-            UIDevice.current.setValue(phoneOrientation!.rawValue, forKey: "orientation")
-        }
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            let appDelegate = UIApplication.shared.delegate as! AppDelegate
-            let padOrientation = appDelegate.padOrientation
-            
-            if padOrientation == .portrait {
-                AppUtility.lockOrientation(.portrait)
-            } else if padOrientation == .portraitUpsideDown {
-                AppUtility.lockOrientation(.portraitUpsideDown)
-            } else if padOrientation == .landscapeLeft {
-                AppUtility.lockOrientation(.landscapeRight)
-            } else if padOrientation == .landscapeRight {
-                AppUtility.lockOrientation(.landscapeLeft)
+    func createTimerForPlayerControlView() {
+        if timer == nil && isPlaying && !isHidePlayerControlView() {
+            DispatchQueue.main.async {
+                self.timer = Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(self.abcdabcd), userInfo: nil, repeats: false)
             }
-        } else {
-            AppUtility.lockOrientation(.portrait)
         }
     }
     
-    var homeController: HomeController!
+    @objc func abcdabcd() {
+        deleteTimerForPlayerControlView()
+        hidePlayerControlView()
+    }
     
-    var video: Video!
-    var subtitle: Subtitle!
+    func createNewTimerForPlayerControlView() {
+        deleteTimerForPlayerControlView()
+        createTimerForPlayerControlView()
+    }
     
-    var avPlayerViewController: AVPlayerViewController!
-    var avPlayerViewControllerView: UIView!
-    var avPlayer: AVPlayer!
+    func deleteTimerForPlayerControlView() {
+        if timer != nil {
+            timer?.invalidate()
+            timer = nil
+        }
+    }
     
-    convenience init(video: Video,
-                     subtitle: Subtitle? = nil) {
+    public var homeController: HomeController!
+    internal var currentTime: Double!
+    internal var file: File!
+    
+    internal var playerControlView: PlayerControlView = {
+        var pcv = PlayerControlView()
+        pcv.translatesAutoresizingMaskIntoConstraints = false
+        return pcv
+    }()
+
+    convenience init(video: File) {
         self.init(nibName:nil, bundle:nil)
         
-        self.video = video
-        if subtitle != nil {
-            self.subtitle = subtitle
-        }
+        AppUtility.openPlayer()
+        self.file = video
     }
-    
-    func goCoreDataDuration() {
-        if video.isNew != true {
-            let currentDuration = video.duration - video.remainingDuration
-            let time: CMTime = CMTimeMake(value: Int64(currentDuration * 1000), timescale: 1000)
-            self.avPlayer.seek(to: time, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
-        }
-    }
-    
-    let controlLayerView: PlayerControlView = {
-        var clv = PlayerControlView()
-        clv.translatesAutoresizingMaskIntoConstraints = false
-        clv.centerViewCenterButton.setImage(#imageLiteral(resourceName: "pause-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
-        return clv
-    }()
-    
-    let leftDoubleTapLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "-5"
-        label.textAlignment = .center
-        label.font = UIFont.boldSystemFont(ofSize: 30)
-        label.textColor = .white
-        label.alpha = 0.0
-        return label
-    }()
-    
-    let rightDoubleTapLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "+5"
-        label.textAlignment = .center
-        label.font = UIFont.boldSystemFont(ofSize: 30)
-        label.textColor = .white
-        label.alpha = 0.0
-        return label
-    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupAVPlayerViewController()
-        goCoreDataDuration()
-        setupAVPlayerControlView()
+        setupPlayerViewController()
+        createTimerForPlayerControlView()
+        setupPlayerControlView()
         setupGesture()
-        setupLeftRightDoubleTapLabel()
+        setUpTheming()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleApplicationWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleApplicationWillTerminate), name: UIApplication.willTerminateNotification, object: nil)
     }
     
-    func setupAVPlayerViewController() {
-        self.avPlayerViewController = AVPlayerViewController()
-        self.avPlayerViewControllerView = avPlayerViewController.contentOverlayView
-        self.avPlayerViewController.showsPlaybackControls = false
-        self.avPlayer = AVPlayer(url: video.path!)
-        self.avPlayerViewController.player = avPlayer
-        
-        self.addChild(avPlayerViewController)
-        self.view.addSubview(avPlayerViewController.view)
-        
-        if subtitle != nil {
-            self.avPlayerViewController.addSubtitles().open(fileFromLocal: subtitle.path!)
-            self.avPlayerViewController.subtitleLabel?.textColor = UIColor.white
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
+    override var prefersStatusBarHidden: Bool {
+        if isHidePlayerControlView() {
+            return true
         }
-        
-        self.avPlayer.currentItem?.addObserver(self, forKeyPath: "duration", options: [.new, .initial], context: nil)
-        addTimeObserver()
-        self.avPlayer.play()
-        self.avPlayer.addObserver(self, forKeyPath: "currentItem.loadedTimeRanges", options: .new, context: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(closePlayer), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: avPlayer.currentItem)
+        return false
+    }
+
+    
+    func isHidePlayerControlView() -> Bool{
+        if playerControlView.backgroundView.alpha == 0.0 {
+            return true
+        }
+        return false
     }
     
-    func setupAVPlayerControlView() {
-        self.avPlayerViewControllerView.addSubview(controlLayerView)
-        
-        timerForControlLayerView()
-        self.controlLayerView.bottomViewCenterSlider.addTarget(self, action: #selector(bottomViewCenterSliderAction), for: .valueChanged)
-        self.controlLayerView.topViewLeftButton.addTarget(self, action: #selector(topViewLeftButtonAction), for: .touchUpInside)
-        self.controlLayerView.centerViewCenterButton.addTarget(self, action: #selector(centerViewCenterButtonAction), for: .touchUpInside)
+    internal func setupPlayerViewController() { }
+    
+    // -------------------------------------------------- CORE DATA
+
+    internal func getCoreData() { }
+    
+    private func setCoreData() {
+        file.video?.position = playerControlView.slider.value
+        if file.isNew {
+            file.isNew = false
+        }
+        if playerControlView.slider.value == 1.0 {
+            file.video?.isDone = true
+        }
+        CoreDataManager.shared.save = true
+    }
+    
+    // -------------------------------------------------- PLAYER CONTROL VIEW
+    
+    private func setupPlayerControlView() {
+        playerControlView = PlayerControlView()
+        playerControlView.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(playerControlView)
         
         NSLayoutConstraint.activate([
-            controlLayerView.topAnchor.constraint(equalTo: avPlayerViewControllerView.topAnchor),
-            controlLayerView.bottomAnchor.constraint(equalTo: avPlayerViewControllerView.bottomAnchor),
-            controlLayerView.trailingAnchor.constraint(equalTo: avPlayerViewControllerView.trailingAnchor),
-            controlLayerView.leadingAnchor.constraint(equalTo: avPlayerViewControllerView.leadingAnchor)
+            playerControlView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            playerControlView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            playerControlView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            playerControlView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor)
             ])
         
-        controlLayerView.topViewCenterLabel.text = video.fileName
+        //TODO: video.file?.name olur mu?
+        playerControlView.topLeftLabel.text = file.name
+        playerControlView.centerButton.setImage(#imageLiteral(resourceName: "pause_bold"), for: .normal)
+        
+        playerControlView.slider.addTarget(self, action: #selector(bottomViewCenterSliderValueChanged), for: .valueChanged)
+        playerControlView.slider.addTarget(self, action: #selector(bottomViewCenterSliderTouch), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        
+        playerControlView.topRightButton.addTarget(self, action: #selector(topViewLeftButtonAction), for: .touchDown)
+        playerControlView.centerButton.addTarget(self, action: #selector(centerViewCenterButtonAction), for: .touchDown)
+        playerControlView.centerLeftButton.addTarget(self, action: #selector(handleCenterLeftButton), for: .touchDown)
+        playerControlView.centerRightButton.addTarget(self, action: #selector(handleCenterRightButton), for: .touchDown)
     }
     
-    func setupGesture() {
-        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap(sender:)))
+    @objc internal func bottomViewCenterSliderTouch() {
+        createTimerForPlayerControlView()
+    }
+    
+    @objc internal func bottomViewCenterSliderValueChanged() {
+        deleteTimerForPlayerControlView()
+    }
+    
+    @objc internal func topViewLeftButtonAction() { }
+    
+    @objc internal func centerViewCenterButtonAction() { }
+    
+    @objc internal func handleCenterLeftButton() {
+        createNewTimerForPlayerControlView()
+    }
+    
+    @objc internal func handleCenterRightButton() {
+        createNewTimerForPlayerControlView()
+    }
+    
+    // -------------------------------------------------- GESTURE
+    
+    internal func setupGesture() {
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap))
         singleTap.numberOfTapsRequired = 1
-        self.avPlayerViewControllerView.addGestureRecognizer(singleTap)
+        self.playerControlView.addGestureRecognizer(singleTap)
         
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(sender:)))
         doubleTap.numberOfTapsRequired = 2
-        self.avPlayerViewControllerView.addGestureRecognizer(doubleTap)
+        self.playerControlView.addGestureRecognizer(doubleTap)
         
         singleTap.require(toFail: doubleTap)
-    }
-    
-    func setupLeftRightDoubleTapLabel() {
-        self.view.addSubview(leftDoubleTapLabel)
-        self.view.addSubview(rightDoubleTapLabel)
         
-        NSLayoutConstraint.activate([
-            leftDoubleTapLabel.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
-            leftDoubleTapLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 100),
-            
-            rightDoubleTapLabel.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
-            rightDoubleTapLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -100)
-            ])
+        let twoFingerTap = UITapGestureRecognizer(target: self, action: #selector(handleTwoFingerTap(sender:)))
+        twoFingerTap.numberOfTouchesRequired = 2
+        self.playerControlView.addGestureRecognizer(twoFingerTap)
     }
     
-    @objc func handleSingleTap(sender: UITapGestureRecognizer) {
-        if controlLayerView.alpha == 0.0 {
-            controlLayerView.alpha = 1.0
-            timerForControlLayerView()
+    @objc internal func handleSingleTap() {
+        if isHidePlayerControlView() {
+            showPlayerControlView()
+            createTimerForPlayerControlView()
         } else {
-            controlLayerView.alpha = 0.0
+            hidePlayerControlView()
+            deleteTimerForPlayerControlView()
         }
     }
     
-    @objc func handleDoubleTap(sender: UITapGestureRecognizer) {
+    @objc private func hidePlayerControlView() {
+        playerControlView.backgroundView.alpha = 0.0
+        playerControlView.centerButton.alpha = 0.0
+        playerControlView.centerLeftButton.alpha = 0.0
+        playerControlView.centerRightButton.alpha = 0.0
+        playerControlView.slider.alpha = 0.0
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    
+    private func showPlayerControlView() {
+        playerControlView.backgroundView.alpha = 1.0
+        playerControlView.centerButton.alpha = 1.0
+        playerControlView.centerLeftButton.alpha = 1.0
+        playerControlView.centerRightButton.alpha = 1.0
+        playerControlView.slider.alpha = 1.0
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    
+    @objc private func handleDoubleTap(sender: UITapGestureRecognizer) {
         sender.isEnabled = false
-        let locationInView = sender.location(in: self.avPlayerViewController.contentOverlayView)
+        let locationInView = sender.location(in: self.view)
         let width = UIScreen.main.bounds.width
         
         if width / 2 < locationInView.x {
@@ -211,120 +210,63 @@ class PlayerController: UIViewController {
         sender.isEnabled = true
     }
     
-    @objc func bottomViewCenterSliderAction() {
-        avPlayer.seek(to: CMTimeMake(value: Int64(controlLayerView.bottomViewCenterSlider.value * 1000), timescale: 1000))
+    internal func leftDoubleTapGesture() {
+        if isHidePlayerControlView() {
+            playerControlView.centerLeftButton.alpha = 1.0
+            playerControlView.slider.alpha = 1.0
+            UIView.animate(withDuration: 0.5, animations: {
+                self.playerControlView.centerLeftButton.alpha = 0.0
+                self.playerControlView.slider.alpha = 0.0
+            })
+        }
     }
     
-    @objc func topViewLeftButtonAction() {
+    internal func rightDoubleTapGesture() {
+        if isHidePlayerControlView() {
+            playerControlView.centerRightButton.alpha = 1.0
+            playerControlView.slider.alpha = 1.0
+            UIView.animate(withDuration: 0.5, animations: {
+                self.playerControlView.centerRightButton.alpha = 0.0
+                self.playerControlView.slider.alpha = 0.0
+            })
+        }
+    }
+    
+    @objc private func handleTwoFingerTap(sender: UITapGestureRecognizer) {
+        sender.isEnabled = false
+        centerViewCenterButtonAction()
+        sender.isEnabled = true
+    }
+    
+    // --------------------------------------------------
+    
+    internal func closePlayer() {
+        AppUtility.closePlayer()
+        setCoreData()
+        self.dismiss(animated: false, completion: nil)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        self.homeController.setupGridView()
+        DispatchQueue.main.async {
+            self.homeController.collectionView.reloadData()
+        }
+    }
+    
+    @objc internal func handleApplicationWillResignActive() { }
+    
+    @objc private func handleApplicationWillTerminate() {
         closePlayer()
     }
     
-    @objc func closePlayer() {
-        avPlayer.pause()
-        ControlData.shared.updateRemainingDuration(video: video, duration: CMTimeGetSeconds(self.avPlayer.currentTime()))
-        if let token = timeObserverToken {
-            self.avPlayer.removeTimeObserver(token)
-            timeObserverToken = nil
-        }
-        avPlayerViewController.dismiss(animated: true)
-        self.avPlayer.replaceCurrentItem(with: nil)
-        self.homeController.closePlayer(viewController: self)
+}
+
+extension PlayerController: Themed {
+    func applyTheme(_ theme: AppTheme) {
+        playerControlView.topLeftLabel.font = theme.header2SemiFont
+        playerControlView.centerLeftLabel.font = theme.paragraph1Font
+        playerControlView.centerRightLabel.font = theme.paragraph1Font
+        playerControlView.bottomLeftLabel.font = theme.custom2Font
+        playerControlView.bottomRightLabel.font = theme.custom2Font
     }
-    
-    @objc func centerViewCenterButtonAction() {
-        if #imageLiteral(resourceName: "pause-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate) == controlLayerView.centerViewCenterButton.image(for: .normal) {
-            avPlayer.pause()
-            controlLayerView.centerViewCenterButton.setImage(#imageLiteral(resourceName: "play-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
-        } else {
-            avPlayer.play()
-            controlLayerView.centerViewCenterButton.setImage(#imageLiteral(resourceName: "pause-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
-        }
-    }
-    
-    func leftDoubleTapGesture() {
-        self.leftDoubleTapLabel.alpha = 1.0
-        UIView.animate(withDuration: 0.5, animations: {
-            self.leftDoubleTapLabel.alpha = 0.0
-        })
-        
-        let currentTime = CMTimeGetSeconds(avPlayer.currentTime())
-        var newTime = currentTime - 5.0
-        
-        if newTime < 0 {
-            newTime = 0
-        }
-        
-        let time: CMTime = CMTimeMake(value: Int64(newTime*1000), timescale: 1000)
-        self.avPlayer.seek(to: time, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
-    }
-    
-    func rightDoubleTapGesture() {
-        self.rightDoubleTapLabel.alpha = 1.0
-        UIView.animate(withDuration: 0.5, animations: {
-            self.rightDoubleTapLabel.alpha = 0.0
-        })
-        
-        guard let duration = avPlayer.currentItem?.duration else {return}
-        let currentTime = CMTimeGetSeconds(avPlayer.currentTime())
-        var newTime = currentTime + 5.0
-        
-        if newTime > CMTimeGetSeconds(duration) {
-            newTime = CMTimeGetSeconds(duration)
-        }
-        
-        let time: CMTime = CMTimeMake(value: Int64(newTime * 1000), timescale: 1000)
-        self.avPlayer.seek(to: time, toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
-    }
-    
-    func timerForControlLayerView() {
-        let when = DispatchTime.now() + 5
-        DispatchQueue.main.asyncAfter(deadline: when){
-            self.controlLayerView.alpha = 0.0
-        }
-    }
-    
-    func getTimeString(from time: CMTime) -> String {
-        var totalSeconds = CMTimeGetSeconds(time)
-        let decimalPlace = Int(totalSeconds * 10) % 10
-        if decimalPlace >= 5 { totalSeconds += 1 }
-        let hours = Int(totalSeconds/3600)
-        let minutes = Int(totalSeconds/60) % 60
-        let seconds = Int(totalSeconds.truncatingRemainder(dividingBy: 60))
-        
-        if hours > 0 {
-            return String(format: "%02i:%02i:%02i", arguments: [hours,minutes,seconds])
-        } else {
-            return String(format: "%02i:%02i", arguments: [minutes,seconds])
-        }
-    }
-    
-    var timeObserverToken: Any!
-    
-    func addTimeObserver() {
-        let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        let mainQueue = DispatchQueue.main
-        timeObserverToken = avPlayer.addPeriodicTimeObserver(forInterval: interval, queue: mainQueue, using: { [weak self] time in
-            
-            var duration = CMTime()
-            if let currentItem = self?.avPlayer.currentItem {
-                duration = currentItem.asset.duration
-            }
-            let currentTime = self?.avPlayer.currentTime()
-            
-            self?.controlLayerView.bottomViewCenterSlider.maximumValue = Float(duration.seconds)
-            self?.controlLayerView.bottomViewCenterSlider.minimumValue = 0
-            self?.controlLayerView.bottomViewCenterSlider.value = Float(currentTime!.seconds)
-            self?.controlLayerView.bottomViewLeftLabel.text = self?.getTimeString(from: currentTime!)
-        })
-    }
-    
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "currentItem.loadedTimeRanges" {
-            //activityIndicatorView.stopAnimating()
-            controlLayerView.isHidden = false
-        } else if keyPath == "duration", let duration = avPlayer.currentItem?.duration.seconds, duration > 0.0 {
-            controlLayerView.bottomViewRightLabel.text = getTimeString(from: avPlayer.currentItem!.duration)
-        }
-    }
-    
 }

@@ -14,54 +14,51 @@ class DarkCoverView: UIView {}
 
 class MainController: UIViewController {
     
-    var menuWidth: CGFloat = 300
-    fileprivate let velocityThreshold: CGFloat = 500
-    fileprivate var isMenuOpened = false
-    var homeController: HomeController!
+    private var menuWidth: CGFloat = 300
+    private let velocityThreshold: CGFloat = 500
+    private var isMenuOpened = false
+    private var homeController: HomeController!
+    private var redViewLeadingConstraint: NSLayoutConstraint!
+    private var redViewTrailingConstraint: NSLayoutConstraint!
     
-    var redViewLeadingConstraint: NSLayoutConstraint!
-    var redViewTrailingConstraint: NSLayoutConstraint!
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        setupViews()
+        setupViewControllers()
+        setupGestures()
+        setUpTheming()
+    }
     
-    let redView: RightContainerView = {
+    private let redView: RightContainerView = {
         let v = RightContainerView()
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
     
-    let blueView: MenuContainerView = {
+    private let blueView: MenuContainerView = {
         let v = MenuContainerView()
-        v.backgroundColor = .blue
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
     
-    let darkCoverView: DarkCoverView = {
+    private let darkCoverView: DarkCoverView = {
         let v = DarkCoverView()
-        v.backgroundColor = UIColor(white: 0, alpha: 0.7)
+        v.backgroundColor = UIColor(white: 0, alpha: 0.8)
         v.alpha = 0
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        view.backgroundColor = .white
-        
-        setupViews()
-        setupViewControllers()
-        setupGestures()
-    }
-    
-    fileprivate func setupViews() {
+    private func setupViews() {
         view.addSubview(redView)
         view.addSubview(blueView)
         
         NSLayoutConstraint.activate([
-            redView.topAnchor.constraint(equalTo: view.topAnchor),
+            redView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             redView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            blueView.topAnchor.constraint(equalTo: view.topAnchor),
+            blueView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             blueView.trailingAnchor.constraint(equalTo: redView.leadingAnchor),
             blueView.widthAnchor.constraint(equalToConstant: menuWidth),
             blueView.bottomAnchor.constraint(equalTo: redView.bottomAnchor)
@@ -69,17 +66,16 @@ class MainController: UIViewController {
         
         redViewLeadingConstraint = redView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor)
         redViewLeadingConstraint.isActive = true
-        
         redViewTrailingConstraint = redView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         redViewTrailingConstraint.isActive = true
     }
-    
-    fileprivate func setupViewControllers() {
+    var menuController: MenuController!
+    private func setupViewControllers() {
         homeController = HomeController(collectionViewLayout: UICollectionViewFlowLayout())
         
         homeController.mainController = self
         
-        let menuController = MenuController()
+        menuController = MenuController()
         menuController.homeController = homeController
         
         let homeNavigationController = UINavigationController(rootViewController: homeController)
@@ -116,7 +112,7 @@ class MainController: UIViewController {
         addChild(menuNavigationController)
     }
     
-    fileprivate func setupGestures() {
+    private func setupGestures() {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         view.addGestureRecognizer(panGesture)
         
@@ -124,28 +120,7 @@ class MainController: UIViewController {
         darkCoverView.addGestureRecognizer(tapGesture)
     }
     
-    @objc func handlePan(gesture: UIPanGestureRecognizer) {
-        let translation = gesture.translation(in: view)
-        var x = translation.x
-        
-        x = isMenuOpened ? x + menuWidth : x
-        x = min(menuWidth, x)
-        x = max(0, x)
-        
-        redViewLeadingConstraint.constant = x
-        redViewTrailingConstraint.constant = x
-        darkCoverView.alpha = x / menuWidth
-        
-        if gesture.state == .ended {
-            handleEnded(gesture: gesture)
-        }
-    }
-    
-    @objc fileprivate func handleTapDismiss() {
-        closeMenu()
-    }
-    
-    fileprivate func handleEnded(gesture: UIPanGestureRecognizer) {
+    private func handleEnded(gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: view)
         let velocity = gesture.velocity(in: view)
         
@@ -172,24 +147,64 @@ class MainController: UIViewController {
         }
     }
     
-    func openMenu() {
+    public func openMenu() {
         isMenuOpened = true
         redViewLeadingConstraint.constant = menuWidth
         redViewTrailingConstraint.constant = menuWidth
         performAnimations()
     }
     
-    func closeMenu() {
+    public func closeMenu() {
         redViewLeadingConstraint.constant = 0
         redViewTrailingConstraint.constant = 0
         isMenuOpened = false
         performAnimations()
     }
     
-    fileprivate func performAnimations() {
+    private func performAnimations() {
         UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
             self.view.layoutIfNeeded()
             self.darkCoverView.alpha = self.isMenuOpened ? 1 : 0
         })
+    }
+    
+    @objc func handlePan(gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: view)
+        var x = translation.x
+        
+        x = isMenuOpened ? x + menuWidth : x
+        x = min(menuWidth, x)
+        x = max(0, x)
+        
+        redViewLeadingConstraint.constant = x
+        redViewTrailingConstraint.constant = x
+        darkCoverView.alpha = x / menuWidth
+        
+        if gesture.state == .ended {
+            handleEnded(gesture: gesture)
+        }
+    }
+    
+    @objc private func handleTapDismiss() {
+        closeMenu()
+    }
+    
+    private var themedStatusBarStyle: UIStatusBarStyle?
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return themedStatusBarStyle ?? super.preferredStatusBarStyle
+    }
+    
+//    override var prefersStatusBarHidden: Bool {
+//        return false
+//    }
+}
+
+extension MainController: Themed {
+    func applyTheme(_ theme: AppTheme) {
+        themedStatusBarStyle = theme.statusBarStyle
+        setNeedsStatusBarAppearanceUpdate()
+        
+        self.view.backgroundColor = theme.backgroundColor
     }
 }

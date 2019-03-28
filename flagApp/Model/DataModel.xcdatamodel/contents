@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="14460.32" systemVersion="18D109" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="File" representedClassName="File" syncable="YES" codeGenerationType="class">
+        <attribute name="fileExtension" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="isNew" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="isReady" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="path" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="size" optional="YES" attributeType="Integer 64" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="thumbnail" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="typeName" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="subtitle" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Subtitle" inverseName="file" inverseEntity="Subtitle" syncable="YES"/>
+        <relationship name="video" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Video" inverseName="file" inverseEntity="Video" syncable="YES"/>
+        <relationship name="videoSubtitle" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Video" inverseName="subtitle" inverseEntity="Video" syncable="YES"/>
+    </entity>
+    <entity name="Subtitle" representedClassName="Subtitle" syncable="YES" codeGenerationType="class">
+        <attribute name="encoding" optional="YES" attributeType="Integer 64" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="file" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="File" inverseName="subtitle" inverseEntity="File" syncable="YES"/>
+    </entity>
+    <entity name="Video" representedClassName="Video" syncable="YES" codeGenerationType="class">
+        <attribute name="isDone" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="position" optional="YES" attributeType="Float" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="resolution" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="time" optional="YES" attributeType="Float" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="timeFormat" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="file" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="File" inverseName="video" inverseEntity="File" syncable="YES"/>
+        <relationship name="subtitle" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="File" inverseName="videoSubtitle" inverseEntity="File" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="File" positionX="-35.32421875" positionY="-251.94921875" width="128" height="225"/>
+        <element name="Subtitle" positionX="215.29296875" positionY="166.9921875" width="128" height="75"/>
+        <element name="Video" positionX="-199.63671875" positionY="25.98046875" width="128" height="150"/>
+    </elements>
+</model>

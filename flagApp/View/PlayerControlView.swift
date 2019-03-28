@@ -1,215 +1,284 @@
 //
-//  PlayerControlView.swift
+//  PlayerControl.swift
 //  flagApp
 //
-//  Created by Saffet Emin Reisoğlu on 27.12.2018.
-//  Copyright © 2018 Saffet Emin Reisoğlu. All rights reserved.
+//  Created by Saffet Emin Reisoğlu on value5.02.2019.
+//  Copyright © 2019 Saffet Emin Reisoğlu. All rights reserved.
 //
 
 import UIKit
 
-let centerViewCenterButtonSize: CGFloat = 90
-
 class PlayerControlView: UIView {
     
-    let controlItemViewMargin: CGFloat = 10
-    let topBottomViewHeight: CGFloat = 40
-    let centerViewHeight: CGFloat = 90
-    let topViewLeftButtonSize: CGFloat = 40
-    let bottomViewCenterSliderMargin: CGFloat = 10
+    // -------------------------------------------------- BACKGROUND
     
-    let gradientView: UIView = {
+    public let backgroundView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    let topGradientLayer: CAGradientLayer = {
+    public let blackView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .black
+        view.alpha = 0.2
+        return view
+    }()
+    
+    private let topGradientLayer: CAGradientLayer = {
         let gl = CAGradientLayer()
         gl.colors = [UIColor.clear.cgColor, UIColor.black.cgColor]
         gl.startPoint = CGPoint(x: 0.5, y: 1.0)
         gl.endPoint = CGPoint(x: 0.5, y: 0.0)
-        gl.locations = [0.2, 1.0]
+        gl.locations = [0.5, 1]
         gl.opacity = 0.75
         return gl
     }()
     
-    let bottomGradientLayer: CAGradientLayer = {
+    private let bottomGradientLayer: CAGradientLayer = {
         let gl = CAGradientLayer()
         gl.colors = [UIColor.clear.cgColor, UIColor.black.cgColor]
-        gl.locations = [0.2, 1.0]
+        gl.locations = [0.5, 1]
         gl.opacity = 0.75
         return gl
     }()
     
-    let controlItemView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
+    // -------------------------------------------------- TOP
+    
+    public let topLeftLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = UIColor.init(white: 0.8, alpha: 1)
+        return label
     }()
     
-    let topView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    let topViewLeftButton: UIButton = {
+    public let topRightButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(#imageLiteral(resourceName: "close-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
-        button.tintColor = .white
+        button.setImage(#imageLiteral(resourceName: "close_bold"), for: .normal)
+        button.tintColor = UIColor.init(white: 0.8, alpha: 1)
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentVerticalAlignment = .fill
+        button.contentHorizontalAlignment = .fill
         button.adjustsImageWhenHighlighted = false
         return button
     }()
     
-    let topViewCenterLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "File Name"
-        label.textAlignment = .center
-        label.textColor = .white
-        return label
-    }()
+    // -------------------------------------------------- CENTER
     
-    let centerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    let centerViewCenterButton: UIButton = {
+    public let centerLeftButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = .white
+        button.setImage(#imageLiteral(resourceName: "backward_bold"), for: .normal)
+        button.tintColor = UIColor.init(white: 0.8, alpha: 1)
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentVerticalAlignment = .fill
+        button.contentHorizontalAlignment = .fill
         button.adjustsImageWhenHighlighted = false
-        button.imageEdgeInsets = UIEdgeInsets(top: centerViewCenterButtonSize,
-                                              left: centerViewCenterButtonSize,
-                                              bottom: centerViewCenterButtonSize,
-                                              right: centerViewCenterButtonSize)
         return button
     }()
     
-    let bottomView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    let bottomViewLeftLabel: UILabel = {
+    public let centerLeftLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
-        label.font = UIFont.boldSystemFont(ofSize: 14)
-        label.textColor = .white
+        label.textColor = UIColor.init(white: 0.8, alpha: 1)
+        label.text = "10"
         return label
     }()
     
-    let bottomViewCenterSlider: UISlider = {
+    public let centerButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(#imageLiteral(resourceName: "play_bold"), for: .normal)
+        button.tintColor = UIColor.init(white: 0.8, alpha: 1)
+        // TODO: imageEdgeInsets nedir?
+        //button.imageEdgeInsets = UIEdgeInsets(top: 50, left: 50, bottom: 50, right: 50)
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentVerticalAlignment = .fill
+        button.contentHorizontalAlignment = .fill
+        button.adjustsImageWhenHighlighted = false
+        return button
+    }()
+    
+    public let centerRightButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(#imageLiteral(resourceName: "forward_bold"), for: .normal)
+        button.tintColor = UIColor.init(white: 0.8, alpha: 1)
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentVerticalAlignment = .fill
+        button.contentHorizontalAlignment = .fill
+        button.adjustsImageWhenHighlighted = false
+        return button
+    }()
+    
+    public let centerRightLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.textColor = UIColor.init(white: 0.8, alpha: 1)
+        label.text = "10"
+        return label
+    }()
+    
+    // -------------------------------------------------- BOTTOM
+    
+    public let bottomLeftLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.textColor = UIColor.init(white: 0.8, alpha: 1)
+        label.text = "00:00:00"
+        return label
+    }()
+    
+    public let slider: UISlider = {
         let slider = UISlider()
         slider.translatesAutoresizingMaskIntoConstraints = false
-        slider.minimumTrackTintColor = .white
-        slider.maximumTrackTintColor = UIColor(white: 1, alpha: 0.5)
-        slider.thumbTintColor = .white
+        slider.minimumTrackTintColor = UIColor.init(white: 0.8, alpha: 1)
+        slider.maximumTrackTintColor = UIColor(white: 0.4, alpha: 1)
+        slider.thumbTintColor = UIColor.init(white: 0.8, alpha: 1)
         slider.setThumbImage(#imageLiteral(resourceName: "thumb-10"), for: .normal)
         slider.setThumbImage(#imageLiteral(resourceName: "thumb-10"), for: .highlighted)
+        slider.minimumValue = 0.0
+        slider.maximumValue = 1.0
         return slider
     }()
     
-    let bottomViewRightLabel: UILabel = {
+    public let bottomRightLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
-        label.font = UIFont.boldSystemFont(ofSize: 14)
-        label.textColor = .white
+        label.textColor = UIColor.init(white: 0.8, alpha: 1)
+        label.text = "00:00:00"
         return label
     }()
-
+    
+    // --------------------------------------------------
+    
+    private var value1: CGFloat!
+    private var value2: CGFloat!
+    private var value3: CGFloat!
+    private var value4: CGFloat!
+    private var value5: CGFloat!
+    private var value6: CGFloat!
+    private var value7: CGFloat!
+    private var value8: CGFloat!
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        setupGradientView()
-        setupControlItems()
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            value1 = 60
+            value2 = value1/2
+            value3 = 25
+            value4 = 30
+            value5 = 20
+            value6 = 5
+            value7 = 5
+            if UIScreen.main.bounds.width == 320.0 || UIScreen.main.bounds.height == 320.0 {
+                value8 = 0.6
+            } else {
+                value8 = 0.7
+            }
+        } else {
+            value1 = 75 // icon size
+            value2 = value1/2
+            value3 = 40 // top anchor
+            value4 = 35 // close icon size
+            value5 = 25 // trailing and leading anchor
+            value6 = 15 // bottom duration label, slider spacing
+            value7 = 7.5 // jump time top anchor
+            value8 = 0.8 // slider size
+        }
+        
+        
+        
+        setupView()
     }
     
-    func setupGradientView() {
-        self.addSubview(gradientView)
-        NSLayoutConstraint.activate([
-            gradientView.topAnchor.constraint(equalTo: self.topAnchor),
-            gradientView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            gradientView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            gradientView.leadingAnchor.constraint(equalTo: self.leadingAnchor)
-            ])
+    override func layoutSubviews() {
+        // TODO: super.layoutSubviews() bunu ekleyince neyide eklemis oluyoruz??
+        //super.layoutSubviews()
+        topGradientLayer.frame = self.bounds
+        bottomGradientLayer.frame = self.bounds
+    }
+    
+    private func setupView() {
         
         let bounds = UIScreen.main.bounds
-        topGradientLayer.frame = bounds
-        bottomGradientLayer.frame = bounds
-        gradientView.layer.addSublayer(topGradientLayer)
-        gradientView.layer.addSublayer(bottomGradientLayer)
-    }
-    
-    func setupControlItems() {
-        self.addSubview(controlItemView)
-        controlItemView.addSubview(topView)
-        topView.addSubview(topViewLeftButton)
-        topView.addSubview(topViewCenterLabel)
-        controlItemView.addSubview(centerView)
-        centerView.addSubview(centerViewCenterButton)
-        controlItemView.addSubview(bottomView)
-        bottomView.addSubview(bottomViewLeftLabel)
-        bottomView.addSubview(bottomViewCenterSlider)
-        bottomView.addSubview(bottomViewRightLabel)
+        let viewWidth = bounds.width > bounds.height ? bounds.width / 4 : bounds.height / 4
+        
+        self.addSubview(backgroundView)
+        backgroundView.addSubview(blackView)
+        backgroundView.layer.addSublayer(topGradientLayer)
+        backgroundView.layer.addSublayer(bottomGradientLayer)
+        self.addSubview(centerLeftButton)
+        self.addSubview(centerRightButton)
+        self.addSubview(slider)
+        backgroundView.addSubview(topLeftLabel)
+        backgroundView.addSubview(topRightButton)
+        self.addSubview(centerButton)
+        backgroundView.addSubview(bottomLeftLabel)
+        backgroundView.addSubview(bottomRightLabel)
+        
+        centerLeftButton.addSubview(centerLeftLabel)
+        centerRightButton.addSubview(centerRightLabel)
         
         NSLayoutConstraint.activate([
-            controlItemView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor, constant: controlItemViewMargin),
-            controlItemView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor, constant: -controlItemViewMargin),
-            controlItemView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor, constant: -controlItemViewMargin),
-            controlItemView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor, constant: controlItemViewMargin),
+            backgroundView.topAnchor.constraint(equalTo: self.topAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leadingAnchor),
             
-            topView.topAnchor.constraint(equalTo: controlItemView.topAnchor),
-            topView.trailingAnchor.constraint(equalTo: controlItemView.trailingAnchor),
-            topView.leadingAnchor.constraint(equalTo: controlItemView.leadingAnchor),
-            topView.heightAnchor.constraint(equalToConstant: topBottomViewHeight),
+            blackView.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            blackView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor),
+            blackView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            blackView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
             
-            topViewLeftButton.topAnchor.constraint(equalTo: topView.topAnchor),
-            topViewLeftButton.bottomAnchor.constraint(equalTo: topView.bottomAnchor),
-            topViewLeftButton.leadingAnchor.constraint(equalTo: topView.leadingAnchor),
-            topViewLeftButton.heightAnchor.constraint(equalToConstant: topViewLeftButtonSize),
-            topViewLeftButton.widthAnchor.constraint(equalToConstant: topViewLeftButtonSize),
+            centerLeftButton.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerXAnchor, constant: -(viewWidth + value2)),
+            centerLeftButton.centerYAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerYAnchor),
+            centerLeftButton.widthAnchor.constraint(equalToConstant: value1),
+            centerLeftButton.heightAnchor.constraint(equalTo: centerLeftButton.widthAnchor),
             
-            topViewCenterLabel.centerXAnchor.constraint(equalTo: topView.centerXAnchor),
-            topViewCenterLabel.centerYAnchor.constraint(equalTo: topView.centerYAnchor),
-            topViewCenterLabel.widthAnchor.constraint(equalToConstant: 200),
+            centerLeftLabel.centerXAnchor.constraint(equalTo: centerLeftButton.centerXAnchor),
+            centerLeftLabel.centerYAnchor.constraint(equalTo: centerLeftButton.centerYAnchor, constant: value7),
             
-            centerView.centerXAnchor.constraint(equalTo: controlItemView.centerXAnchor),
-            centerView.centerYAnchor.constraint(equalTo: controlItemView.centerYAnchor),
-            centerView.widthAnchor.constraint(equalTo: controlItemView.widthAnchor),
-            centerView.heightAnchor.constraint(equalToConstant: centerViewHeight),
+            centerRightButton.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerXAnchor, constant: viewWidth + value2),
+            centerRightButton.centerYAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerYAnchor),
+            centerRightButton.widthAnchor.constraint(equalToConstant: value1),
+            centerRightButton.heightAnchor.constraint(equalTo: centerRightButton.widthAnchor),
             
-            centerViewCenterButton.centerXAnchor.constraint(equalTo: centerView.centerXAnchor),
-            centerViewCenterButton.centerYAnchor.constraint(equalTo: centerView.centerYAnchor),
-            centerViewCenterButton.widthAnchor.constraint(equalToConstant: centerViewCenterButtonSize),
-            centerViewCenterButton.heightAnchor.constraint(equalToConstant: centerViewCenterButtonSize),
+            centerRightLabel.centerXAnchor.constraint(equalTo: centerRightButton.centerXAnchor),
+            centerRightLabel.centerYAnchor.constraint(equalTo: centerRightButton.centerYAnchor, constant: value7),
             
-            bottomView.bottomAnchor.constraint(equalTo: controlItemView.bottomAnchor),
-            bottomView.trailingAnchor.constraint(equalTo: controlItemView.trailingAnchor),
-            bottomView.leadingAnchor.constraint(equalTo: controlItemView.leadingAnchor),
-            bottomView.heightAnchor.constraint(equalToConstant: topBottomViewHeight),
+            slider.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerXAnchor),
+            slider.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor, constant: -value3),
+            slider.widthAnchor.constraint(equalTo: self.safeAreaLayoutGuide.widthAnchor, multiplier: value8),
             
-            bottomViewLeftLabel.topAnchor.constraint(equalTo: bottomView.topAnchor),
-            bottomViewLeftLabel.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor),
-            bottomViewLeftLabel.leadingAnchor.constraint(equalTo: bottomView.leadingAnchor),
-            bottomViewLeftLabel.widthAnchor.constraint(equalToConstant: 65),
+            topLeftLabel.centerYAnchor.constraint(equalTo: topRightButton.centerYAnchor),
+            topLeftLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: value5),
+            topLeftLabel.trailingAnchor.constraint(equalTo: topRightButton.leadingAnchor, constant: -value5),
             
-            bottomViewCenterSlider.topAnchor.constraint(equalTo: bottomView.topAnchor),
-            bottomViewCenterSlider.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor),
-            bottomViewCenterSlider.leadingAnchor.constraint(equalTo: bottomViewLeftLabel.trailingAnchor, constant: bottomViewCenterSliderMargin),
-            bottomViewCenterSlider.trailingAnchor.constraint(equalTo: bottomViewRightLabel.leadingAnchor, constant: -bottomViewCenterSliderMargin),
+            topRightButton.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: value3),
+            topRightButton.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -value5),
+            topRightButton.widthAnchor.constraint(equalToConstant: value4),
+            topRightButton.heightAnchor.constraint(equalTo: topRightButton.widthAnchor),
             
-            bottomViewRightLabel.topAnchor.constraint(equalTo: bottomView.topAnchor),
-            bottomViewRightLabel.bottomAnchor.constraint(equalTo: bottomView.bottomAnchor),
-            bottomViewRightLabel.trailingAnchor.constraint(equalTo: bottomView.trailingAnchor),
-            bottomViewRightLabel.widthAnchor.constraint(equalToConstant: 65)
+            centerButton.centerXAnchor.constraint(equalTo: backgroundView.centerXAnchor),
+            centerButton.centerYAnchor.constraint(equalTo: backgroundView.centerYAnchor),
+            centerButton.widthAnchor.constraint(equalToConstant: value1),
+            centerButton.heightAnchor.constraint(equalTo: centerButton.widthAnchor),
+            
+            bottomLeftLabel.centerYAnchor.constraint(equalTo: slider.centerYAnchor),
+            bottomLeftLabel.trailingAnchor.constraint(equalTo: slider.leadingAnchor, constant: -value6),
+            bottomLeftLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: value5),
+            
+            bottomRightLabel.centerYAnchor.constraint(equalTo: slider.centerYAnchor),
+            bottomRightLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -value5),
+            bottomRightLabel.leadingAnchor.constraint(equalTo: slider.trailingAnchor, constant: value6)
             ])
     }
     

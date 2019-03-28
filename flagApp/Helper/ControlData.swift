@@ -2,8 +2,8 @@
 //  ControlData.swift
 //  flagApp
 //
-//  Created by Saffet Emin Reisoğlu on 27.12.2018.
-//  Copyright © 2018 Saffet Emin Reisoğlu. All rights reserved.
+//  Created by Saffet Emin Reisoğlu on 13.02.2019.
+//  Copyright © 2019 Saffet Emin Reisoğlu. All rights reserved.
 //
 
 import UIKit
@@ -11,300 +11,171 @@ import CoreData
 
 class ControlData {
     
-    //Singleton
+    private init() {}
     static let shared = ControlData()
-    private init() {
+    
+    private var coreDataFileArray = [File]()
+    private let documentDirectoryUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    private var documentDirectoryObserver: DirectoryObserver!
+    
+    public func startDocumentsFolderObserver() {
+        control()
+        documentDirectoryObserver = DirectoryObserver(URL: documentDirectoryUrl, block: {
+            self.control()
+        })
     }
     
-    //Core data context
-    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
-    private var pathArray = [Path]()
-    private var videoArray = [Video]()
-    private var subtitleArray = [Subtitle]()
-    
-    private var nVideoArray = [Video]()
-    private var nSubtitleArray = [Subtitle]()
-    private var tVideoArray = [Video]()
-    private var tSubtitleArray = [Subtitle]()
-    
-    var getVideoArray: [Video] {
-        return nVideoArray
-    }
-    var getSubtitleArray: [Subtitle] {
-        return nSubtitleArray
-    }
-    var getTrashVideoArray: [Video] {
-        return tVideoArray
-    }
-    var getTrashSubtitleArray: [Subtitle] {
-        return tSubtitleArray
-    }
-    
-    //MARK: - Control Data
-    
-    func controlData() {
-        let currentPathUrlArray = fetchCoreData()
-        let newPathUrlArray = fetchDocumentFolder()
+    private func control() {
+        let coreDataFilePathArray = loadCoreDataFilePathArray()
+        let documentFolderFilePathArray = loadDocumentFolderFilePathArray()
         
-        if currentPathUrlArray.count == 0 && newPathUrlArray.count == 0 {
-            return
-        } else if currentPathUrlArray.count == 0 {
-            for item in newPathUrlArray {
-                addPath(url: item)
-            }
-            return
-        } else if newPathUrlArray.count == 0 {
-            clearData()
-            return
-        }
+//        if coreDataFilePathArray.count == 0 && documentFolderFilePathArray.count == 0 {
+//            return
+//        } else if coreDataFilePathArray.count == 0 {
+//            createFiles(paths: documentFolderFilePathArray)
+//            CoreDataManager.shared.saveContext()
+//            return
+//        } else if documentFolderFilePathArray.count == 0 {
+//            deleteFiles()
+//            return
+//        }
         
-        for item in newPathUrlArray {
-            if let index = currentPathUrlArray.index(of: item) {
-                if fileSize(url: item) != fileSize(url: currentPathUrlArray[index]) {
-                    deletePath(url: currentPathUrlArray[index])
-                    addPath(url: item)
+        for item in documentFolderFilePathArray {
+            if let index = coreDataFilePathArray.index(of: item) {
+                if AppUtility.fileSize(path: item) != AppUtility.fileSize(path: coreDataFilePathArray[index]) {
+                    deleteFile(file: self.coreDataFileArray[index])
+                    createFile(path: item)
                 }
             } else {
-                addPath(url: item)
+                createFile(path: item)
             }
-            
         }
         
-        for item in currentPathUrlArray {
-            if !(newPathUrlArray.contains(item)) {
-                deletePath(url: item)
+        for (index,item) in coreDataFilePathArray.enumerated() {
+            if !(documentFolderFilePathArray.contains(item)) {
+                deleteFile(file: self.coreDataFileArray[index])
             }
         }
+        
+        CoreDataManager.shared.save = true
     }
     
-    func fetchCoreData() -> [URL] {
-        loadData()
-        parseVideo()
-        parseSubtitle()
-        var tempPaths = [URL]()
-        for item in pathArray {
-            tempPaths.append(item.path!)
+    //TODO: Bu surekli siser.
+    var videoFeaturesArray: [VLCVideoFeatures] = []
+    
+    func createVideo(file: File) {
+        let context = CoreDataManager.shared.persistentContainer.viewContext
+        let video = Video(context: context)
+        file.video = video
+        if AppUtility.whichFileFormat(fileExtension: file.fileExtension!) == .AppleSupportVideoFormat {
+            AVVideoFeatures.aaa(file: file)
+        } else {
+            videoFeaturesArray.append(VLCVideoFeatures(file: file))
         }
-        return tempPaths
+        video.isDone = false
+        video.position = 0.0
+    }
+
+    func createSubtitle() -> Subtitle {
+        let context = CoreDataManager.shared.persistentContainer.viewContext
+        let subtitle = Subtitle(context: context)
+        subtitle.encoding = Int64(String.Encoding.windowsCP1254.rawValue)
+        return subtitle
+    }
+    
+//    func createFiles(paths: [String]) {
+//        paths.forEach { (path) in
+//            createFile(path: path)
+//        }
+//    }
+    
+    func deleteFile(file: File) {
+        let context = CoreDataManager.shared.persistentContainer.viewContext
+        context.delete(file)
+    }
+    
+//    func deleteFiles() {
+//        let context = CoreDataManager.shared.persistentContainer.viewContext
+//        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: File.fetchRequest())
+//        do {
+//            try context.execute(batchDeleteRequest)
+//        } catch let delErr {
+//            print("Failed to delete objects from Core Data:", delErr)
+//        }
+//    }
+    
+    private func loadCoreDataFilePathArray() -> [String] {
+        coreDataFileArray = CoreDataManager.shared.fetchFiles()
+        var coreDataFilePathArray = [String]()
+        coreDataFileArray.forEach { (file) in
+            coreDataFilePathArray.append(file.path!)
+        }
+        return coreDataFilePathArray
     }
     
     func fetchDocumentFolder() -> [URL] {
-        let documentDirectoryUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        var tempPaths = [URL]()
         do {
-            tempPaths = try FileManager.default.contentsOfDirectory(at: documentDirectoryUrl, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+            let tempPaths = try FileManager.default.contentsOfDirectory(at: documentDirectoryUrl, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+            return tempPaths
         } catch {
             print(error.localizedDescription)
-        }
-        return tempPaths
-    }
-    
-    //MARK: - CoreData
-    
-    private func loadData() {
-        let request: NSFetchRequest<Path> = Path.fetchRequest()
-        do {
-            pathArray = try context.fetch(request)
-        } catch {
-            print("Error fetching data from context \(error)")
-        }
-        
-        let request2: NSFetchRequest<Video> = Video.fetchRequest()
-        do {
-            videoArray = try context.fetch(request2)
-        } catch {
-            print("Error fetching data from context \(error)")
-        }
-        
-        let request3: NSFetchRequest<Subtitle> = Subtitle.fetchRequest()
-        do {
-            subtitleArray = try context.fetch(request3)
-        } catch {
-            print("Error fetching data from context \(error)")
+            return []
         }
     }
     
-    private func clearData() {
-        for item in pathArray {
-            context.delete(item)
-        }
-        pathArray.removeAll()
-        saveData()
-        
-        for item in videoArray {
-            context.delete(item)
-        }
-        videoArray.removeAll()
-        saveData()
-        
-        for item in subtitleArray {
-            context.delete(item)
-        }
-        subtitleArray.removeAll()
-        saveData()
-    }
-    
-    func updateFile(url: URL, newValue: String, forKey: String) {
-        if fileExtension(url: url).lowercased() != "srt" {
-            var i: Int = 0
-            for item in videoArray {
-                if item.path == url { break }
-                i += 1
+    private func loadDocumentFolderFilePathArray() -> [String] {
+        let files = fetchDocumentFolder()
+        var filesPath = [String]()
+        files.forEach { (file) in
+            if AppUtility.whichFileFormat(fileExtension: file.pathExtension) != .none {
+                filesPath.append(file.path)
             }
-            videoArray[i].setValue(newValue, forKey: forKey)
+        }
+        return filesPath
+    }
+    
+    private var observers: [DirectoryObserver2] = []
+    
+    public func createFile(path: String) {
+        let context = CoreDataManager.shared.persistentContainer.viewContext
+        let file = File(context: context)
+        file.fileExtension = AppUtility.fileExtension(path: path)
+        file.typeName = (AppUtility.whichFileFormat(fileExtension: file.fileExtension!) != .SubRipSubtitleFormat) ? "video" : "subtitle"
+        file.isNew = true
+        file.name = AppUtility.fileName(path: path)
+        file.path = path
+        file.size = AppUtility.fileSize(path: path)
+        file.thumbnail = UIColor.init(white: 0, alpha: 0.2).image().pngData()
+        file.isReady = false
+        if file.size == 0 {
+            let observer = DirectoryObserver2(URL: URL(fileURLWithPath: path), block: {
+                file.size = AppUtility.fileSize(path: path)
+                if file.size != 0 {
+                    self.ttt(file: file)
+                    CoreDataManager.shared.save = true
+                }
+            })
+            observers.append(observer)
         } else {
-            var i: Int = 0
-            for item in subtitleArray {
-                if item.path == url { break }
-                i += 1
-            }
-            subtitleArray[i].setValue(newValue, forKey: forKey)
-        }
-        saveData()
-    }
-    
-    func updateRemainingDuration(video: Video, duration: Double) {
-        if video.isNew == true {
-            video.setValue(false, forKey: "isNew")
-        }
-        var remainingDuration = video.duration - duration
-        var remainingDurationFormat = "\(durationFormat(time: remainingDuration)) LEFT"
-        
-        if remainingDuration <= 0.0 {
-            remainingDurationFormat = "DONE"
-            remainingDuration = video.duration
-        }
-        
-        video.setValue(remainingDuration, forKey: "remainingDuration")
-        video.setValue(remainingDurationFormat, forKey: "remainingDurationFormat")
-        saveData()
-    }
-    
-    private func addPath(url: URL) {
-        let newPath = Path(context: context)
-        newPath.path = url
-        self.pathArray.append(newPath)
-        
-        saveData()
-        
-        let ext = fileExtension(url: url)
-        if ext.lowercased() == "m4v" || ext.lowercased() == "mp4" || ext.lowercased() == "mov" {
-            addVideo(url: url)
-        } else if ext.lowercased() == "srt" {
-            addSubtitle(url: url)
+            ttt(file: file)
         }
     }
     
-    private func deletePath(url: URL) {
-        for item in pathArray {
-            if item.path == url {
-                
-                context.delete(item)
-                if let index = pathArray.index(of: item) {
-                    pathArray.remove(at: index)
-                }
-            }
-        }
-        saveData()
-        
-        let ext = fileExtension(url: url)
-        if ext.lowercased() == "m4v" || ext.lowercased() == "mp4" || ext.lowercased() == "mov" {
-            deleteVideo(url: url)
-        } else if ext.lowercased() == "srt" {
-            deleteSubtitle(url: url)
+    func ttt(file: File) {
+        if AppUtility.whichFileFormat(fileExtension: file.fileExtension!) != .SubRipSubtitleFormat {
+            createVideo(file: file)
+        } else {
+            file.isReady = true
+            file.subtitle = createSubtitle()
         }
     }
     
-    private func addVideo(url: URL) {
-        let newVideo = Video(context: context)
-        newVideo.path = url
-        newVideo.folderName = "Videos"
-        newVideo.fileName = fileName(url: url)
-        newVideo.fileExtension = fileExtension(url: url)
-        newVideo.size = fileSize(url: url)
-        newVideo.sizeFormat = fileSizeFormat(url: url)
-        newVideo.duration = videoDuration(url: url)
-        newVideo.durationFormat = videoDurationFormat(url: url)
-        newVideo.resolution = videoResolution(url: url)
-        newVideo.thumbnail = videoThumbnail(url: url)
-        newVideo.isNew = true
-        newVideo.remainingDuration = -1.0
-        newVideo.remainingDurationFormat = "-"
-        self.videoArray.append(newVideo)
-        self.saveData()
+}
+
+extension Array where Element: Hashable {
+    func difference(from other: [Element]) -> [Element] {
+        let thisSet = Set(self)
+        let otherSet = Set(other)
+        return Array(thisSet.symmetricDifference(otherSet))
     }
-    
-    private func deleteVideo(url: URL) {
-        for item in videoArray {
-            if item.path == url {
-                context.delete(item)
-                if let index = videoArray.index(of: item) {
-                    videoArray.remove(at: index)
-                }
-            }
-        }
-        saveData()
-    }
-    
-    func parseVideo() {
-        nVideoArray.removeAll()
-        tVideoArray.removeAll()
-        for item in videoArray {
-            if item.folderName == "Videos" {
-                nVideoArray.append(item)
-            } else if item.folderName == "Trash" {
-                tVideoArray.append(item)
-            }
-        }
-    }
-    
-    private func addSubtitle(url: URL) {
-        let newSubtitle = Subtitle(context: context)
-        newSubtitle.path = url
-        newSubtitle.folderName = "Subtitles"
-        newSubtitle.fileName = fileName(url: url)
-        newSubtitle.fileExtension = fileExtension(url: url)
-        newSubtitle.size = fileSize(url: url)
-        newSubtitle.sizeFormat = fileSizeFormat(url: url)
-        self.subtitleArray.append(newSubtitle)
-        saveData()
-    }
-    
-    private func deleteSubtitle(url: URL) {
-        for item in subtitleArray {
-            if item.path == url {
-                
-                context.delete(item)
-                if let index = subtitleArray.index(of: item) {
-                    subtitleArray.remove(at: index)
-                }
-            }
-        }
-        saveData()
-    }
-    
-    func parseSubtitle() {
-        nSubtitleArray.removeAll()
-        tSubtitleArray.removeAll()
-        for item in subtitleArray {
-            if item.folderName == "Subtitles" {
-                nSubtitleArray.append(item)
-            } else if item.folderName == "Trash" {
-                tSubtitleArray.append(item)
-            }
-        }
-    }
-    
-    private func saveData() {
-        do {
-            try self.context.save()
-        } catch {
-            print("Error saving context \(error)")
-        }
-        loadData()
-        parseVideo()
-        parseSubtitle()
-    }
-    
 }
