@@ -19,13 +19,13 @@ class PlayerControlView: UIView {
     let bottomViewCenterSliderMargin: CGFloat = 10
     
     let gradientView: UIView = {
-        var view = UIView()
+        let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     let topGradientLayer: CAGradientLayer = {
-        var gl = CAGradientLayer()
+        let gl = CAGradientLayer()
         gl.colors = [UIColor.clear.cgColor, UIColor.black.cgColor]
         gl.startPoint = CGPoint(x: 0.5, y: 1.0)
         gl.endPoint = CGPoint(x: 0.5, y: 0.0)
@@ -35,7 +35,7 @@ class PlayerControlView: UIView {
     }()
     
     let bottomGradientLayer: CAGradientLayer = {
-        var gl = CAGradientLayer()
+        let gl = CAGradientLayer()
         gl.colors = [UIColor.clear.cgColor, UIColor.black.cgColor]
         gl.locations = [0.2, 1.0]
         gl.opacity = 0.75

@@ -23,6 +23,7 @@
 		4A565E6221D4D43B00B55219 /* ControlSubtitle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A565E6121D4D43B00B55219 /* ControlSubtitle.swift */; };
 		4A565E6421D5140200B55219 /* InfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A565E6321D5140200B55219 /* InfoView.swift */; };
 		4A565E6621D5143200B55219 /* AppInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A565E6521D5143200B55219 /* AppInfoView.swift */; };
+		4AB6C7D621F6FA8100F5AE68 /* UICollectionViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB6C7D521F6FA8100F5AE68 /* UICollectionViewExtension.swift */; };
 		4AEB842521D4598100FCB416 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEB842421D4598100FCB416 /* AppDelegate.swift */; };
 		4AEB842C21D4598200FCB416 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AEB842B21D4598200FCB416 /* Assets.xcassets */; };
 		4AEB842F21D4598200FCB416 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AEB842D21D4598200FCB416 /* LaunchScreen.storyboard */; };
@@ -45,6 +46,7 @@
 		4A565E6121D4D43B00B55219 /* ControlSubtitle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlSubtitle.swift; sourceTree = "<group>"; };
 		4A565E6321D5140200B55219 /* InfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoView.swift; sourceTree = "<group>"; };
 		4A565E6521D5143200B55219 /* AppInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfoView.swift; sourceTree = "<group>"; };
+		4AB6C7D521F6FA8100F5AE68 /* UICollectionViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICollectionViewExtension.swift; sourceTree = "<group>"; };
 		4AEB842121D4598100FCB416 /* flagApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = flagApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AEB842421D4598100FCB416 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4AEB842B21D4598200FCB416 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -103,6 +105,7 @@
 				4A565E6121D4D43B00B55219 /* ControlSubtitle.swift */,
 				4A43C94721D4CFF90060AF45 /* DirectoryObserver.swift */,
 				4A43C94521D4CFE20060AF45 /* OtherExtension.swift */,
+				4AB6C7D521F6FA8100F5AE68 /* UICollectionViewExtension.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -220,6 +223,7 @@
 				4A43C93C21D4CF970060AF45 /* PopupController.swift in Sources */,
 				4A43C93821D4CF670060AF45 /* MenuController.swift in Sources */,
 				4A43C92E21D4CF0A0060AF45 /* HomeCellView.swift in Sources */,
+				4AB6C7D621F6FA8100F5AE68 /* UICollectionViewExtension.swift in Sources */,
 				4A565E6421D5140200B55219 /* InfoView.swift in Sources */,
 				4A43C93A21D4CF850060AF45 /* PlayerController.swift in Sources */,
 				4A43C93221D4CF3A0060AF45 /* PlayerControlView.swift in Sources */,
@@ -370,8 +374,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = 4K634X2CUP;
 				INFOPLIST_FILE = "$(SRCROOT)/flagApp/Other/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -381,7 +384,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sereisoglu.flagApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = FlagAppDevelopment;
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -391,8 +394,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = 4K634X2CUP;
 				INFOPLIST_FILE = "$(SRCROOT)/flagApp/Other/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -402,7 +405,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sereisoglu.flagApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = FlagAppDistribution;
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

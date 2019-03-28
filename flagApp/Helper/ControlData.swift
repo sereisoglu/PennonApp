@@ -146,7 +146,7 @@ class ControlData {
     }
     
     func updateFile(url: URL, newValue: String, forKey: String) {
-        if fileExtension(url: url) != "srt" {
+        if fileExtension(url: url).lowercased() != "srt" {
             var i: Int = 0
             for item in videoArray {
                 if item.path == url { break }
@@ -171,7 +171,7 @@ class ControlData {
         var remainingDuration = video.duration - duration
         var remainingDurationFormat = "\(durationFormat(time: remainingDuration)) LEFT"
         
-        if remainingDuration == 0.0 {
+        if remainingDuration <= 0.0 {
             remainingDurationFormat = "DONE"
             remainingDuration = video.duration
         }
@@ -189,9 +189,9 @@ class ControlData {
         saveData()
         
         let ext = fileExtension(url: url)
-        if ext == "m4v" || ext == "mp4" || ext == "mov" {
+        if ext.lowercased() == "m4v" || ext.lowercased() == "mp4" || ext.lowercased() == "mov" {
             addVideo(url: url)
-        } else if ext == "srt" {
+        } else if ext.lowercased() == "srt" {
             addSubtitle(url: url)
         }
     }
@@ -209,9 +209,9 @@ class ControlData {
         saveData()
         
         let ext = fileExtension(url: url)
-        if ext == "m4v" || ext == "mp4" || ext == "mov" {
+        if ext.lowercased() == "m4v" || ext.lowercased() == "mp4" || ext.lowercased() == "mov" {
             deleteVideo(url: url)
-        } else if ext == "srt" {
+        } else if ext.lowercased() == "srt" {
             deleteSubtitle(url: url)
         }
     }

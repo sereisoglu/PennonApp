@@ -38,7 +38,7 @@ class PopupController: UIViewController{
         self.textField.placeholder = fileName
         self.popupLabel1.text = ".\(fileExtension)"
         
-        if fileExtension != "srt" {
+        if fileExtension.lowercased() != "srt" {
             self.popupThumbnailCenterViewIcon.image = #imageLiteral(resourceName: "play-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
             self.popupLabel2.text = videoDuration
             self.popupLabel3.text = fileSize
@@ -313,7 +313,7 @@ class PopupController: UIViewController{
             popupLeftButton.widthAnchor.constraint(equalTo: popupRightButton.widthAnchor)
             ])
         
-        if fileUrl.pathExtension != "srt" {
+        if fileUrl.pathExtension.lowercased() != "srt" {
             popupCenterView.heightAnchor.constraint(equalToConstant: 100).isActive = true
         } else {
             popupCenterView.heightAnchor.constraint(equalToConstant: 50).isActive = true
@@ -350,7 +350,7 @@ class PopupController: UIViewController{
         if popupRightButton.title(for: .normal) == "Rename" && textField.text! != "" {
             ControlData.shared.updateFile(url: fileUrl, newValue: textField.text!, forKey: "fileName")
         } else {
-            if fileUrl.pathExtension != "srt" {
+            if fileUrl.pathExtension.lowercased() != "srt" {
                 ControlData.shared.updateFile(url: fileUrl, newValue: "Videos", forKey: "folderName")
             } else {
                 ControlData.shared.updateFile(url: fileUrl, newValue: "Subtitles", forKey: "folderName")

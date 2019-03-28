@@ -171,12 +171,10 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
                     viewController = PlayerController(video: video)
                 }
                 viewController.homeController = self
-                self.addChild(viewController)
-                let mainWindow = UIApplication.shared.keyWindow
-                self.view.addSubview(viewController.view)
-                mainWindow?.addSubview(viewController.view)
                 
-                mainController.view.isHidden = true
+                let mainWindow = UIApplication.shared.keyWindow
+                mainWindow?.rootViewController = viewController
+                //present(viewController, animated: true, completion: nil)
             }
         }
     }
@@ -184,14 +182,21 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     var mainController: MainController!
     
     func closePlayer(viewController: PlayerController) {
+        
+        let mainWindow = UIApplication.shared.keyWindow
+        mainWindow?.rootViewController = mainController
+        
         viewController.dismiss(animated: true)
         viewController.view.removeFromSuperview()
         viewController.removeFromParent()
+        
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            AppUtility.lockOrientation(.all)
+        }
+
         DispatchQueue.main.async {
             self.collectionView.reloadData()
         }
-        
-        mainController.view.isHidden = false
     }
 
 }
@@ -201,6 +206,7 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
 extension HomeController {
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        
         ControlData.shared.controlData()
         switch selectedFolder {
         case "All Files":
@@ -215,6 +221,29 @@ extension HomeController {
             print("error")
             numberOfItemsInSection = ControlData.shared.getVideoArray.count + ControlData.shared.getSubtitleArray.count
         }
+        
+        if numberOfItemsInSection == 0 {
+            let button = UIButton()
+            button.addTarget(self, action: #selector(handleRightNavItem), for: .touchUpInside)
+            switch selectedFolder {
+            case "All Files":
+                self.collectionView.setEmptyCollectionView(labelText: "Your All Files\nfolder is empty.", buttonIsHide: false, buttonText: "Add File", button: button)
+            case "Videos":
+                self.collectionView.setEmptyCollectionView(labelText: "Your Videos\nfolder is empty.", buttonIsHide: false, buttonText: "Add Video", button: button)
+            case "Subtitles":
+                self.collectionView.setEmptyCollectionView(labelText: "Your Subtitles\nfolder is empty.", buttonIsHide: false, buttonText: "Add Subtitle", button: button)
+            case "Trash":
+                self.collectionView.setEmptyCollectionView(labelText: "Your Trash\nfolder is empty.", buttonIsHide: true)
+            default:
+                print("error")
+                self.collectionView.setEmptyCollectionView(labelText: "Your All Files\nfolder is empty.", buttonIsHide: false, buttonText: "Add File", button: button)
+            }
+        } else {
+            //self.collectionView.setNotEmptyCollectionView()
+            self.collectionView.backgroundView = nil
+        }
+        
+        
         return numberOfItemsInSection
     }
     

@@ -54,7 +54,7 @@ class HomeCellView: UICollectionViewCell {
         self.thumbnailView.image = thumbnail
         self.label1.text = fileName
         
-        if fileExtension != "srt" {
+        if fileExtension.lowercased() != "srt" {
             self.thumbnailCenterViewIcon.image = #imageLiteral(resourceName: "play-48").withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
             self.label2.text = videoDuration
             self.rightCrossLabel.text = isNew ? "NEW" : videoRemainingDuration
@@ -207,7 +207,7 @@ class HomeCellView: UICollectionViewCell {
                 lightImpactFeedbackGenerator.impactOccurred()
             }
             
-            if fileExtension != "srt" {
+            if fileExtension.lowercased() != "srt" {
                 homeController.setupPopupController(fileUrl: self.fileUrl,
                                                         fileName: self.fileName,
                                                         folderName: self.folderName,

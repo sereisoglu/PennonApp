@@ -11,24 +11,49 @@ import AVKit
 
 class PlayerController: UIViewController {
     
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
-        UIApplication.shared.isStatusBarHidden = true
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        UIApplication.shared.isStatusBarHidden = false
-    }
-    
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
+        super.viewWillAppear(animated)
+        
         let bounds = UIScreen.main.bounds
-        if (UIDevice.current.userInterfaceIdiom == .pad){
+        if bounds.width < bounds.height {
+            controlLayerView.topGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
+            controlLayerView.bottomGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
+        } else {
             controlLayerView.topGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height)
             controlLayerView.bottomGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height)
         }
-        else{
-            controlLayerView.topGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
-            controlLayerView.bottomGradientLayer.frame = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
+        
+        AppUtility.lockOrientation(.landscape)
+        
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let phoneOrientation = appDelegate.phoneOrientation
+            UIDevice.current.setValue(phoneOrientation!.rawValue, forKey: "orientation")
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            let padOrientation = appDelegate.padOrientation
+            
+            if padOrientation == .portrait {
+                AppUtility.lockOrientation(.portrait)
+            } else if padOrientation == .portraitUpsideDown {
+                AppUtility.lockOrientation(.portraitUpsideDown)
+            } else if padOrientation == .landscapeLeft {
+                AppUtility.lockOrientation(.landscapeRight)
+            } else if padOrientation == .landscapeRight {
+                AppUtility.lockOrientation(.landscapeLeft)
+            }
+        } else {
+            AppUtility.lockOrientation(.portrait)
         }
     }
     
@@ -201,7 +226,7 @@ class PlayerController: UIViewController {
             self.avPlayer.removeTimeObserver(token)
             timeObserverToken = nil
         }
-        //avPlayerViewController.dismiss(animated: true)
+        avPlayerViewController.dismiss(animated: true)
         self.avPlayer.replaceCurrentItem(with: nil)
         self.homeController.closePlayer(viewController: self)
     }
