@@ -41,7 +41,7 @@ class ControlData {
 //        }
         
         for item in documentFolderFilePathArray {
-            if let index = coreDataFilePathArray.index(of: item) {
+            if let index = coreDataFilePathArray.firstIndex(of: item) {
                 if AppUtility.fileSize(path: item) != AppUtility.fileSize(path: coreDataFilePathArray[index]) {
                     deleteFile(file: self.coreDataFileArray[index])
                     createFile(path: item)
